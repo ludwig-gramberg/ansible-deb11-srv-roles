@@ -1,0 +1,41 @@
+AcceptEnv LANG LC_*
+AddressFamily inet
+AllowTcpForwarding local
+ChallengeResponseAuthentication no
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,aes256-cbc
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostbasedAuthentication no
+IgnoreRhosts yes
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1
+LogLevel INFO
+LoginGraceTime 120
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
+PasswordAuthentication no
+PermitEmptyPasswords no
+PermitRootLogin no
+PermitTunnel no
+Port 22
+PrintLastLog yes
+PrintMotd no
+Protocol 2
+PubkeyAuthentication yes
+StrictModes yes
+Subsystem sftp /usr/lib/openssh/sftp-server
+SyslogFacility AUTH
+TCPKeepAlive yes
+UseDNS no
+UsePAM yes
+X11DisplayOffset 10
+X11Forwarding no
+
+{% if ssh.users is defined %}
+{% for u in ssh.users %}
+AllowUsers {{ u.name }}
+{% if (u.force_command is defined) %}
+Match User {{ u.name }}
+   ForceCommand {{ u.force_command }}
+{% endif %}
+{% endfor %}
+{% endif %}

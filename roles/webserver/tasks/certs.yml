@@ -1,0 +1,25 @@
+---
+
+# prepare list of ssl-certs to be deployed
+
+- name: cert dir
+  file: 
+    path: /etc/ssl-site-certs/ 
+    owner: root 
+    group: root 
+    mode: 0755 
+    state: directory
+  tags: ssl-certs
+
+- name: deploy certs
+  copy: 
+    dest: /etc/ssl-site-certs/{{ item }} 
+    src: ../../../certs/{{ item }} 
+    owner: root 
+    group: root 
+    mode: 0400
+  with_items: "{{ webserver.cert_files | default([]) }}"
+  notify:
+    - restart apache
+  tags: ssl-certs
+  when: webserver is defined

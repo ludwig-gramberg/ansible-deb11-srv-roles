@@ -1,0 +1,113 @@
+---
+
+# default container munin plugins
+
+- name: plugins container
+  set_fact:
+    munin_plugins:
+      - plugin: fw_packets
+      - plugin: netstat
+      - plugin: open_files
+      - plugin: if_eth0
+        source: if_
+      - plugin: if_err_eth0
+        source: if_err_
+      - plugin: threads
+      - plugin: uptime
+      - plugin: users
+      - plugin: vmstat
+  when: "'container' in group_names"
+
+- name: plugins master
+  set_fact:
+    munin_plugins:
+      - plugin: netstat
+      - plugin: fw_forwarded_local
+      - plugin: fw_packets
+      - plugin: fw_conntrack
+      - plugin: "if_{{ if_public }}"
+        source: if_
+      - plugin: "if_err_{{ if_public }}"
+        source: if_err_
+      - plugin: ntp_kernel_pll_freq
+      - plugin: ntp_kernel_pll_off
+      - plugin: ntp_kernel_err
+      - plugin: ntp_offset
+      - plugin: entropy
+      - plugin: interrupts
+      - plugin: irqstats
+      - plugin: open_files
+      - plugin: df
+      - plugin: df_inode
+      - plugin: diskstats
+      - plugin: open_inodes
+      - plugin: cpu
+      - plugin: forks
+      - plugin: swap
+      - plugin: memory
+      - plugin: meminfo
+      - plugin: munin_stats
+      - plugin: load
+      - plugin: threads
+      - plugin: proc_pri
+      - plugin: processes
+      - plugin: users
+      - plugin: uptime
+      - plugin: vmstat
+  when: "'container' not in group_names"
+
+# separated install and upgrade so ansible only sets up the plugins-dir once
+
+- name: install munin-node
+  apt: 
+    name: "{{ item }}"
+    state: present
+  register: munin_node_installed
+  with_items:
+   - munin-node
+   - libwww-perl
+
+- name: remove all (default) plugins
+  shell: rm -f /etc/munin/plugins/*
+  when: munin_node_installed.changed
+
+- name: activate plugins
+  file: 
+    src: "/usr/share/munin/plugins/{{ item.source|default(item.plugin) }}" 
+    dest: "/etc/munin/plugins/{{ item.plugin }}"
+    state: link 
+    owner: root
+    group: root
+  with_items: "{{ munin_plugins }}"
+  notify:
+    - restart munin
+
+- name: activate host-based additional plugins
+  file: 
+    src: "/usr/share/munin/plugins/{{ item.source|default(item.plugin) }}"
+    dest: "/etc/munin/plugins/{{ item.plugin }}"
+    state: link 
+    owner: root 
+    group: root
+  with_items: "{{ munin_additional_plugins|default([]) }}"
+  notify:
+    - restart munin
+
+- name: munin-node.conf
+  template: 
+    src: munin-node.conf.j2 
+    dest: /etc/munin/munin-node.conf 
+    owner: root
+    group: root
+  notify:
+    - restart munin
+  tags: munin-config
+
+- name: apache plugin conf
+  template: 
+    src: munin-apache.j2 
+    dest: /etc/munin/plugin-conf.d/apache 
+    owner: root
+    group: root
+  notify:
+    - restart munin

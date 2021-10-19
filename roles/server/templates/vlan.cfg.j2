@@ -1,0 +1,4 @@
+auto {{ if_vlan }}
+iface {{ if_vlan }} inet static
+    address {{ ip_vlan }}
+    netmask 255.255.255.0

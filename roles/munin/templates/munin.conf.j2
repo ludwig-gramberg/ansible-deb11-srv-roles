@@ -1,0 +1,10 @@
+includedir /etc/munin/munin-conf.d
+
+{% for group in munin.hosts %}
+{% for host in group.nodes %}
+[{{ group.group }};{{ host.name }}]
+	address {{ host.ip }}
+	use_node_name yes
+    port {{ host.port|default(4949) }}
+{% endfor %}
+{% endfor %}

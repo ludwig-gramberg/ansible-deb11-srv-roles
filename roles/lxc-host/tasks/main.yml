@@ -1,0 +1,23 @@
+---
+
+- name: install basics
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - lxc
+    - uidmap
+    - python3-lxc
+
+- import_tasks: tasks/bridge.yml
+  tags: lxc-bridge
+
+# setup containers
+
+- name: setup containers
+  include_tasks: tasks/container.yml
+  with_items: "{{ lxc_container|default([]) }}"
+  loop_control:
+    loop_var: "container_item"
+  when: (container is defined and container in [ container_item.name, "*" ])
+  tags: lxc-container

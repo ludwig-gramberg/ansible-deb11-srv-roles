@@ -1,0 +1,25 @@
+---
+
+- name: ssh config
+  template: 
+    dest: /etc/ssh/sshd_config
+    src: sshd_config.j2
+  notify:
+  - reload sshd
+
+- name: create ssh users
+  user:
+    name: "{{ item.name }}"
+    password: "{{ item.password_encrypted }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    groups: "{{ item.groups|default([]) }}"
+    append: yes
+  with_items: "{{ ssh.users|default([]) }}"
+
+- name: ssh user authorized key
+  authorized_key:
+    user: "{{ item.0.name }}"
+    key: "{{ item.1 }}"
+  with_subelements:
+   - "{{ ssh.users|default([]) }}"
+   - public_keys

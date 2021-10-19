@@ -1,0 +1,13 @@
+[Unit]
+Description=LXC-Alt network bridge setup
+After=network-online.target
+Before=lxc.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/lxc-net-alt start
+ExecStop=/opt/lxc-net-alt stop
+
+[Install]
+WantedBy=multi-user.target

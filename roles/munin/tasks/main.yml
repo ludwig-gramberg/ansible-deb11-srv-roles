@@ -1,0 +1,49 @@
+---
+
+- name: install munin
+  apt: name=munin state=present
+  register: munin_node_installed
+
+- name: install packages
+  apt: name={{ item }} state=present
+  with_items:
+    - python3-passlib
+    - libwww-perl
+
+- name: create directory for basic auth files
+  file: path=/etc/apache2/basic-auth state=directory
+
+- name: create password file for basic auth
+  htpasswd:
+    path: "/etc/apache2/basic-auth/munin"
+    name: "{{ munin.auth.user }}"
+    password: "{{ munin.auth.pass }}"
+    owner: "root"
+    group: "www-data"
+    mode: "0640"
+
+- name: disable default apache conf
+  file: path=/etc/apache2/conf-enabled/munin.conf state=absent
+  notify:
+    - reload apache
+
+- name: enable cgid module
+  apache2_module: state=present name=cgid
+  notify:
+    - restart apache
+
+- name: deploy apache munin site .conf
+  template: src=templates/apache.conf.j2 dest=/etc/apache2/sites-available/munin.conf
+  notify:
+    - reload apache
+
+- name: enable apache munin site .conf
+  file: src=/etc/apache2/sites-available/munin.conf dest=/etc/apache2/sites-enabled/munin.conf state=link
+  notify:
+    - reload apache
+
+- name: munin.conf
+  template: src=munin.conf.j2 dest=/etc/munin/munin.conf owner=root group=root
+  notify:
+    - restart munin
+  tags: munin-config

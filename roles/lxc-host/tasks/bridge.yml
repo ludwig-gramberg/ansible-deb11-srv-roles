@@ -1,0 +1,31 @@
+---
+
+- name: stop lxc-net
+  systemd:
+    state: stopped
+    name: lxc-net
+
+- name: install init-script
+  template:
+    dest: /opt/lxc-net-alt
+    src: lxc-net-alt/init.j2
+    owner: root
+    group: root
+    mode: 0755
+
+- name: install service-file
+  template:
+    dest: /etc/systemd/system/lxc-net.service
+    src: lxc-net-alt/service.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daemon-reload systemctl
+  raw: systemctl daemon-reload
+    
+- name: start lxc-net-alt service
+  systemd:
+    state: started
+    enabled: true
+    name: lxc-net

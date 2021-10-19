@@ -1,0 +1,34 @@
+---
+
+- name: remove default enabled site
+  file: 
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  notify:
+    - restart apache
+
+- name: set server name
+  template: 
+    dest: /etc/apache2/conf-enabled/server-name.conf 
+    src: templates/server-name.conf.j2
+  notify:
+    - restart apache
+
+- name: listen on 8000 for server-status / munin
+  lineinfile: 
+    dest: /etc/apache2/ports.conf 
+    line: "Listen 8000" 
+    state: "present"
+  notify:
+    - restart apache
+
+- name: combined logfileformat switch %h -> %a
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    line: 'LogFormat "%a %{HTTP_HOST}e %l %u %t \"%r\" %>s %O \"%{Location}o\" \"%{Referer}i\" \"%{User-Agent}i\"" combined'
+    regexp: "^LogFormat(.*)combined$"
+    state: "present"
+  tags:
+    - webserver-log-config
+  notify:
+    - restart apache

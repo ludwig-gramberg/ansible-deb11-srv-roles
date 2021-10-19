@@ -1,0 +1,39 @@
+---
+
+- name: install basics
+  apt: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - inetutils-syslogd
+    - iputils-ping
+    - logrotate
+    - dnsutils
+    - telnet
+    - cron
+    - htop
+    - curl
+    - wget
+    - less
+    - nano
+    - vim
+    - man
+    - zip
+    - rsync
+    - apt-listchanges
+    - mailutils
+    - nagios-plugins
+
+- name: hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.resolve }}\t{{ item.host }}"
+  with_items: "{{ hosts|default([]) }}"
+  
+- name: silence cron
+  lineinfile:
+    path: /etc/crontab
+    line: "MAILTO=\"\""
+    regexp: "^MAILTO="
+    insertafter: "^PATH="

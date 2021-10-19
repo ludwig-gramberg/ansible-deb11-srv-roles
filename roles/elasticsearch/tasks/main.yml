@@ -1,0 +1,26 @@
+---
+
+- name: install key
+  apt_key:
+    url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+    state: present
+
+- name: elastic-repo
+  template:
+    dest: /etc/apt/sources.list.d/elastic.list
+    src: templates/elastic.list.j2
+
+- name: update apt
+  apt:
+    update_cache: yes
+
+- name: install mysql-server
+  apt: 
+    name: "elasticsearch"
+    state: present
+    
+- name: enable elastic
+  service: 
+    name: elasticsearch
+    enabled: yes
+    state: started

@@ -1,0 +1,56 @@
+---
+
+- name: update key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 8C718D3B5072E1F5
+
+- name: mysql-repo
+  template:
+    dest: /etc/apt/sources.list.d/mysql.list
+    src: templates/mysql.list.j2
+
+- name: update apt
+  apt:
+    update_cache: yes
+
+- name: install mysql-server
+  apt: name={{ item }} state=present
+  with_items:
+   - python3
+   - python3-mysqldb
+   - mysql-community-server
+
+- name: my.cnf
+  template: 
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf 
+    src: templates/my.cnf.j2 
+    backup: yes
+  tags: mysql-config
+  notify:
+   - restart mysql
+
+- name: enable mysql
+  service: name=mysql enabled=yes
+
+- name: create databases
+  mysql_db:
+    name: "{{ item.name }}"
+    encoding: "{{ item.encoding }}"
+    collation: "{{ item.collation }}"
+    login_user: root
+  with_items: "{{ mysql_databases|default([]) }}"
+  tags: mysql-accounts
+
+- name: create database users
+  mysql_user:
+    host: "{{ item.1.host }}"
+    name: "{{ item.1.name }}"
+    password: "{{ item.1.password }}"
+    priv: "{{ item.0.name }}.*:ALL"
+    login_user: root
+    append_privs: yes
+  with_subelements:
+    - "{{ mysql_databases|default([]) }}"
+    - users
+  tags: mysql-accounts

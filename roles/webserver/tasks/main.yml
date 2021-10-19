@@ -1,0 +1,33 @@
+---
+
+- name: set vars
+  set_fact:
+    munin_plugins:
+      - plugin: apache_accesses # machine specific
+      - plugin: apache_processes
+      - plugin: apache_volume
+      - plugin: http_loadtime
+  tags: munin
+
+- name: check if munin installation
+  stat:
+    path: /usr/share/munin/plugins/
+  register: munin_installed
+  tags: munin
+
+- name: activate plugins
+  file: 
+    src: "/usr/share/munin/plugins/{{ item.source|default(item.plugin) }}"
+    dest: "/etc/munin/plugins/{{ item.plugin }}" 
+    state: link 
+    owner: root 
+    group: root
+  with_items: "{{ munin_plugins }}"
+  notify:
+    - restart munin
+  tags: munin
+  when: munin_installed.stat.exists == True
+
+- include_tasks: tasks/packages.yml
+- include_tasks: tasks/apache.yml
+- include_tasks: tasks/certs.yml

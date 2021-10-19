@@ -1,0 +1,49 @@
+---
+- name: set munin vars
+  set_fact:
+    munin:
+      plugins:
+        - plugin: apache_accesses
+        - plugin: apache_processes
+        - plugin: apache_volume
+  tags: munin
+
+- name: filter webserver_reverseproxy by extra-vars domain
+  set_fact:
+    webserver_reverseproxy: "{{ webserver_reverseproxy | selectattr('domain', 'equalto', domain) | list }}"
+  when: domain is defined
+  tags:
+    - reverseproxy-config
+    - reverseproxy-certs
+
+- name: activate plugins
+  file: 
+    src: "/usr/share/munin/plugins/{{ item.source|default(item.plugin) }}"
+    dest: "/etc/munin/plugins/{{ item.plugin }}"
+    state: link 
+    owner: root 
+    group: root
+  with_items: "{{ munin.plugins }}"
+  notify:
+    - restart munin
+  tags: munin
+
+- include: packages.yml
+  tags:
+    - reverseproxy-config
+- include: apache.yml
+  tags:
+    - reverseproxy-config
+- include: certs.yml
+  tags:
+    - reverseproxy-certs
+
+- name: listen on 8000 for server-status / munin
+  lineinfile: 
+    dest: /etc/apache2/ports.conf 
+    line: "Listen 8000" 
+    state: "present"
+  notify:
+    - restart apache
+  tags:
+    - reverseproxy-config

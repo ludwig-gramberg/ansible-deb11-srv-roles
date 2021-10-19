@@ -1,0 +1,99 @@
+#!/usr/sbin/nft -f
+
+flush ruleset
+
+# definitions
+{% if nftables.define is defined %}
+{% for def in nftables.define %}
+define {{ def.name }} = {{ def.value }}
+{% endfor %}
+{% endif %}
+
+table ip6 filter {
+
+	chain input {
+		type filter hook input priority 0; policy drop;
+		
+		ct state established,related accept
+		ct state invalid drop
+		
+		iifname != lo ip6 saddr ::1 reject
+		iifname lo accept
+		
+		# allow ping
+		ip6 nexthdr ipv6-icmp limit rate 4/second accept
+	}
+	
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+	}
+	
+	chain output {
+		type filter hook output priority 0; policy accept;
+	}
+}
+
+table ip filter {
+
+	chain input {
+		type filter hook input priority 0; policy drop;
+		
+		ct state established,related accept
+		ct state invalid drop
+		
+		iifname != lo ip daddr 127.0.0.0/8 reject
+		iifname lo accept
+		
+		# allow ping
+		icmp type echo-request limit rate 4/second accept
+
+{% if nftables.bridge is defined %}
+        iifname {{ nftables.bridge.name }} udp dport 53 accept
+        iifname {{ nftables.bridge.name }} tcp dport 53 accept
+{% endif %}
+
+{% if nftables.input is defined %}
+{% for rule in nftables.input %}
+		{% if rule.comment is defined %}#{{ rule.comment }}{% endif %}
+
+		{% if rule.saddr is defined %}ip saddr {{ rule.saddr }} {% endif %}{% if rule.daddr is defined %}ip daddr {{ rule.daddr }} {% endif %}{{ rule.proto|default("tcp") }} dport {{ rule.dport }} accept
+{% endfor %}
+{% endif %}
+
+        limit rate 5/minute burst 5 packets log prefix "dropped input: " level warn
+	}
+	
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+		
+{% if nftables.bridge is defined %}
+		iifname {{ nftables.bridge.name }} accept
+		oifname {{ nftables.bridge.name }} accept
+{% endif %}
+		
+		limit rate 5/minute burst 5 packets log prefix "dropped forward: " level warn
+	}
+	
+	chain output {
+		type filter hook output priority 0; policy accept;
+	}
+}
+
+table ip nat {
+{% if nftables.forward is defined %}
+	chain prerouting {
+		type nat hook prerouting priority -100; 
+		#policy accept;
+{% for rule in nftables.forward %}
+        iifname {{ if_public }} {{ rule.proto|default("tcp") }} dport {{ rule.dport }}{% if rule.daddr is defined %} ip daddr {{ rule.daddr }}{% endif %}{% if rule.saddr is defined %} ip saddr {{ rule.saddr }}{% endif %} dnat {{ rule.dnat }}
+{% endfor %} 
+	}
+{% endif %}
+{% if nftables.bridge is defined %}
+	chain postrouting {
+		type nat hook postrouting priority 100; 
+		#policy accept;
+		ip saddr {{ nftables.bridge.net }} ip daddr != {{ nftables.bridge.net }} masquerade 
+	}
+{% endif %}
+}

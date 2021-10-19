@@ -1,0 +1,80 @@
+---
+
+- name: install requirements
+  environment:
+      DEBIAN_FRONTEND: noninteractive
+  apt: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apache2
+    - openssl
+    - ca-certificates
+    - certbot
+
+- name: deploy mpm conf
+  template: 
+    src: "mpm_{{ mpm.module }}.conf.j2" 
+    dest: "/etc/apache2/mods-available/mpm_{{ mpm.module }}.conf"
+
+- name: unlink all mpm modules
+  file: 
+    path: "/etc/apache2/mods-enabled/mpm_{{ item[0] }}.{{ item[1] }}" 
+    state: absent
+  with_nested:
+    - [ "event", "prefork", "worker" ]
+    - [ "conf", "load" ]
+  when: ("{{ mpm.module }}" != item[0])
+  notify:
+    - restart apache
+
+- name: link preferred mpm module
+  file: 
+    src: "/etc/apache2/mods-available/{{ item }}" 
+    dest: "/etc/apache2/mods-enabled/{{ item }}" 
+    state: link
+  with_items:
+    - "mpm_{{ mpm.module }}.conf"
+    - "mpm_{{ mpm.module }}.load"
+  notify:
+    - restart apache
+
+- name: enable apache modules
+  apache2_module: 
+    state: present 
+    name: "{{ item }}"
+  with_items:
+    - ssl
+    - headers
+    - rewrite
+    - expires
+    - proxy
+    - proxy_http
+    - cgid
+  notify:
+    - restart apache
+
+- name: harden ssl
+  lineinfile:
+    path: /etc/apache2/mods-enabled/ssl.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backup: yes
+  with_items:
+    - regexp: ^[\s]*#?[\s]*SSLHonorCipherOrder
+      line: SSLHonorCipherOrder On
+    - regexp: ^[\s]*#?[\s]*SSLCipherSuite
+      line: SSLCipherSuite TLSv1.3:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384
+    - regexp: ^[\s]*#?[\s]*SSLCompression
+      line: SSLCompression off
+    - regexp: ^[\s]*#?[\s]*SSLProtocol
+      line: SSLProtocol +all -SSLv3 -TLSv1 -TLSv1.1
+  notify:
+    - restart apache
+  tags:
+    - harden_ssl
+
+- name: enable apache2
+  service: 
+    name: apache2 
+    enabled: yes

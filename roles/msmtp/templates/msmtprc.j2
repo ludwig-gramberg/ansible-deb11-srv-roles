@@ -1,0 +1,16 @@
+defaults
+port {{ msmtp.port }}
+tls on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+
+account {{ msmtp.email }}
+host {{ msmtp.server }}
+from {{ msmtp.email }}
+auth on
+user {{ msmtp.user }}
+password {{ msmtp.pass }}
+
+# Set a default account
+account default : {{ msmtp.email }}
+
+aliases /etc/aliases

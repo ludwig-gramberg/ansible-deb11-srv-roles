@@ -1,0 +1,30 @@
+---
+
+- name: create well-known dir
+  file:
+    path: /var/www/html/certbot/.well-known
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    
+- name: reload apache
+  service: 
+    name: apache2 
+    state: reloaded
+
+- name: build install certs command
+  set_fact:
+    certbot_command: "certbot certonly -q --webroot --webroot-path=/var/www/html/certbot/ -m {{ certbot_auth_email }} --agree-tos --expand -d {{ site.domain }}"
+
+- name: build install certs command add aliases
+  set_fact:
+    certbot_command: "{{ certbot_command }} -d {{ item.name }}"
+  when: "(item.ssl is defined) and (item.ssl == True)"
+  with_items: "{{ site.aliases | default([]) }}"
+
+- name: install certs
+  shell: "{{ certbot_command }}"
+  args:
+    creates: "/etc/letsencrypt/live/{{ site.domain }}/cert.pem"

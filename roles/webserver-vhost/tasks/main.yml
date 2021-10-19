@@ -1,0 +1,11 @@
+---
+
+- name: deploy vhosts
+  template: dest=/etc/apache2/sites-available/vhosts.conf src=templates/vhosts.conf.j2
+  notify:
+    - reload apache
+
+- name: enable vhosts
+  file: src=/etc/apache2/sites-available/vhosts.conf dest=/etc/apache2/sites-enabled/000-vhosts.conf owner=root group=root state=link
+  notify:
+    - reload apache

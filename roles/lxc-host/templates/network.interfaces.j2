@@ -1,0 +1,8 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+   address {{ container_item.ip }}
+   netmask {{ container_item.netmask | default(lxc_defaults.netmask) }}
+   gateway {{ container_item.gateway | default(lxc_defaults.gateway) }}

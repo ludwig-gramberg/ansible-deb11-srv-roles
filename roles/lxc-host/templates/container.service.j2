@@ -1,0 +1,14 @@
+[Unit]
+Description=container-{{ container_item.name }}
+After=network.target auditd.service sshd.service
+
+[Service]
+Restart=always
+RestartSec=15
+Type=forking
+PIDFile=/run/container-{{ container_item.name }}.pid
+ExecStart=/usr/bin/lxc-start -d -p /run/container-{{ container_item.name }}.pid -n {{ container_item.name }}
+ExecStop=/usr/bin/lxc-stop -n {{ container_item.name }}
+
+[Install]
+WantedBy=multi-user.target

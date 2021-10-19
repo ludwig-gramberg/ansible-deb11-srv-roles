@@ -1,0 +1,33 @@
+# Distribution configuration
+lxc.include = /usr/share/lxc/config/debian.common.conf
+lxc.include = /usr/share/lxc/config/debian.userns.conf
+lxc.arch = linux64
+
+# https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/1811248
+# https://github.com/lxc/lxc/issues/2778
+lxc.apparmor.profile = unconfined
+
+# Container specific configuration
+lxc.idmap = u 0 {{ uid_begin }} 65536
+lxc.idmap = g 0 {{ uid_begin }} 65536
+lxc.rootfs.path = /var/lib/lxc/{{ container_item.name }}/rootfs
+lxc.uts.name = {{ container_item.name }}
+
+# Network configuration
+lxc.net.0.name = eth0
+lxc.net.0.type = veth
+lxc.net.0.link = lxc
+lxc.net.0.flags = up
+lxc.net.0.ipv4.address = {{ container_item.ip }}/24
+lxc.net.0.ipv4.gateway = {{ container_item.gateway | default(lxc_defaults.gateway) }}
+
+{% if (container_item.mount is defined) %}
+{% for mount in container_item.mount %}
+lxc.mount.entry = {{ mount.source_path }} /var/lib/lxc/{{ container_item.name }}/rootfs{{ mount.target_path }} none bind 0 0
+{% endfor %}
+{% endif %}
+
+{% if (container_item.allow_vpn is defined and container_item.allow_vpn == true) %}
+lxc.mount.entry = /dev/net dev/net none bind,create=dir
+lxc.cgroup.devices.allow = c 10:200 rwm
+{% endif %}

@@ -1,0 +1,41 @@
+{% for vhost in vhosts %}
+
+# --- vhost {{ vhost.domain }} ---
+
+<VirtualHost {{ vhost.match }}:80>
+	ServerName {{ vhost.domain }}
+	ServerAdmin {{ vhost.admin }}
+	DocumentRoot {{ vhost.docroot }}
+
+{% if vhost.other is defined %}
+{% for other in vhost.other %}
+    {{ other }}
+{% endfor %}
+{% endif %}
+
+	<Directory />
+		Order Deny,Allow
+		Options FollowSymLinks
+		AllowOverride None
+		require all denied
+	</Directory>
+
+{% for dir in vhost.directories %}
+	<Directory {{ dir.dir }}>
+{% for access in dir.access %}
+		require {{ access.require }}
+{% endfor %}
+{% if dir.other is defined %}
+{% for other in dir.other %}
+		{{ other }}
+{% endfor %}
+{% endif %}
+	</Directory>
+{% endfor %}
+
+	ErrorLog /var/log/apache2/error_{{ vhost.domain }}.log
+	LogLevel warn
+	CustomLog /var/log/apache2/access_{{ vhost.domain }}.log combined
+</VirtualHost>
+
+{% endfor %}

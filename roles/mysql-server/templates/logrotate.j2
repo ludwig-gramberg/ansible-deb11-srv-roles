@@ -1,0 +1,9 @@
+/var/lib/mysql/mysql-error.log {
+	daily
+	missingok
+	rotate 7
+	compress
+	delaycompress
+	ifempty
+	create 640 mysql mysql
+}

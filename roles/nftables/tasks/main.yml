@@ -1,0 +1,26 @@
+---
+
+- name: install nftables
+  apt: 
+    name: nftables
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: default rules template
+  template: 
+    dest: /etc/nftables.conf
+    src: netfilter.conf.j2 
+    owner: root 
+    group: root
+    mode: 0644
+  notify: 
+    - reload rules
+  tags:
+    - nftables-config
+    
+- name: start & enable nftables
+  service:
+    name: nftables
+    state: started
+    enabled: yes

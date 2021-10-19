@@ -1,0 +1,95 @@
+---
+
+- name: prepare deploy
+  set_fact:
+    commit_hash: "HEAD"
+  when: (commit_hash is undefined)
+
+- name: reset fetch origin
+  shell: git fetch origin
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+
+- name: checkout branch
+  shell: "git checkout {{ deploy.branch }}"
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+
+- name: reset
+  shell: git reset --hard {{ deploy.branch }}
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+
+- name: pull from remote
+  shell: git pull origin {{ deploy.branch }}
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+
+- name: checkout revision
+  shell: git checkout {{ commit_hash }}
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+
+- name: get export commit hash
+  shell: git rev-parse --verify HEAD
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+  register: result
+
+- name: prepare variable
+  set_fact:
+    revision_hash: "{{ result.stdout }}"
+
+- name: get commit date
+  shell: git show -s --format=%cd --date=short
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+  register: result
+
+- name: prepare variables
+  set_fact:
+    revision_tar: "{{ deploy.dir }}/{{ result.stdout }}_{{ revision_hash }}.tar"
+    revision_folder: "{{ deploy.dir }}/revisions/{{ result.stdout }}_{{ revision_hash }}"
+
+- name: create revision folder
+  file:
+    dest: "{{ revision_folder }}"
+    state: directory
+    mode: 0750
+    owner: root
+    group: "www-data"
+  register: create_folder
+
+- name: prepare export
+  set_fact:
+    tar_exclude: ""
+  when: create_folder.changed
+
+- name: prepare export
+  set_fact:
+    tar_exclude: "--exclude={{ deploy.ignore|default([])|join(' --exclude=') }}"
+  when: (create_folder.changed and deploy.ignore is iterable and deploy.ignore|length > 0)
+
+- name: export/archive revision
+  shell: "git archive --format=tar {{ revision_hash }} | tar {{ tar_exclude }} -x -C {{ revision_folder }}"
+  args:
+    chdir: "{{ deploy.dir }}/repository"
+  when: create_folder.changed
+
+- name: revision folder permissions
+  file:
+    recurse: yes
+    dest: "{{ revision_folder }}"
+    mode: 0750
+    owner: root
+    group: "www-data"
+  when: create_folder.changed
+
+- name: .revision file
+  copy:
+    content: "{{ revision_hash }}"
+    dest: "{{ revision_folder }}/{{ deploy.revision_file }}"
+    mode: 0440
+    owner: root
+    group: "www-data"
+  when: deploy.revision_file

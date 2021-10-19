@@ -1,0 +1,6 @@
+---
+
+- name: reload rules
+  service: 
+    name: nftables
+    state: reloaded

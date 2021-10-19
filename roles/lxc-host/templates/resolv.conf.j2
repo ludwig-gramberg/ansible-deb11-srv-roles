@@ -1,0 +1,4 @@
+options single-request
+{% for ip in lxc_defaults.nameserver %}
+nameserver {{ ip }}
+{% endfor %}

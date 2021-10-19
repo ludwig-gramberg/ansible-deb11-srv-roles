@@ -1,0 +1,20 @@
+log_level 4
+log_file /var/log/munin/munin-node.log
+pid_file /var/run/munin/munin-node.pid
+
+background 1
+setsid 1
+
+user root
+group root
+
+host_name {{ ansible_nodename }}
+
+{% if ansible_host == munin_master %}
+allow ^127\.0\.0\.1$
+host 127.0.0.1
+{% else %}
+allow ^{{ munin_master | replace('.', '\.') }}$
+host {{ munin_host|default(ansible_host) }}
+{% endif %}
+port 4949

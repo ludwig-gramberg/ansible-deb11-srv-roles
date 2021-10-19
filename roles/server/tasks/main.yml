@@ -1,0 +1,39 @@
+---
+
+- name: silence cron
+  lineinfile:
+    path: /etc/crontab
+    line: "MAILTO=\"\""
+    regexp: "^MAILTO="
+    insertafter: "^PATH="
+    
+- name: install basics
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - inetutils-syslogd
+    - iputils-ping
+    - logrotate
+    - dnsutils
+    - telnet
+    - cron
+    - htop
+    - curl
+    - wget
+    - less
+    - nano
+    - vim
+    - man
+    - zip
+    - rsync
+    - apt-listchanges
+    - mailutils
+    - nagios-plugins
+
+- name: vlan_if
+  template:
+    dest: /etc/network/interfaces.d/60-vlan.cfg
+    src: templates/vlan.cfg.j2
+  when: if_vlan is defined
