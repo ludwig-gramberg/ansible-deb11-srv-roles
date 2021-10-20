@@ -1,0 +1,40 @@
+---
+
+- include_tasks: tasks/packages.yml
+
+- name: php-logdir
+  file: path=/var/log/php state=directory owner=www-data group=www-data mode=0755
+
+- name: php ini
+  template: dest=/etc/php/5.6/{{ item }}/php.ini src=templates/php.{{ item }}.ini.j2 backup=yes
+  with_items:
+    - "apache2"
+    - "cli"
+  notify:
+   - restart apache
+  tags:
+  - php-ini
+
+- name: logrotate for php logs
+  template: dest=/etc/logrotate.d/php src=templates/php.logrotate.j2
+
+- name: place vhost
+  template: src=vhost.conf.j2 dest=/etc/apache2/sites-available/localhost.conf owner="root" group="root"
+  notify:
+    - restart apache
+
+- name: enable vhost
+  file: state=link src=/etc/apache2/sites-available/localhost.conf dest=/etc/apache2/sites-enabled/localhost.conf
+  notify:
+    - restart apache
+
+- name: opcache_reset script
+  copy: src=files/opcache/opcache_reset.php dest=/var/www/html/opcache_reset.php mode=0644 owner="root" group="root"
+
+- name: check if munin installation
+  stat:
+    path: /usr/share/munin/plugins/
+  register: munin_installed
+
+- include_tasks: tasks/munin.yml
+  when: munin_installed.stat.exists == True
