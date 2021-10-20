@@ -9,7 +9,7 @@
 
 - name: set server name
   template: 
-    dest: /etc/apache2/conf-enabled/server-name.conf 
+    dest: /etc/apache2/conf-enabled/server-name.conf
     src: templates/server-name.conf.j2
   notify:
     - restart apache
@@ -32,3 +32,8 @@
     - webserver-log-config
   notify:
     - restart apache
+
+- name: create vhost-include dir
+  file:
+    path: /etc/apache2/vhosts-include
+    state: directory

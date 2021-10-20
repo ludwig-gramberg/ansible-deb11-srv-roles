@@ -10,6 +10,9 @@
 - name: enable vhosts
   file: 
     src: /etc/apache2/sites-available/vhosts.conf
-    dest: /etc/apache2/sites-enabled/000-vhosts.conf owner=root group=root state=link
+    dest: /etc/apache2/sites-enabled/000-vhosts.conf
+    owner: root
+    group: root
+    state: link
   notify:
     - reload apache

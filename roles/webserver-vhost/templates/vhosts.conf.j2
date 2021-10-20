@@ -7,7 +7,7 @@
 {% for alias in vhost.alias|default([]) %}
     ServerAlias {{ alias }}
 {% endfor %}
-	ServerAdmin {{ vhost.admin|admin_email }}
+	ServerAdmin {{ vhost.admin|default(admin_email) }}
 	DocumentRoot {{ vhost.docroot }}
 
 	<Directory />
