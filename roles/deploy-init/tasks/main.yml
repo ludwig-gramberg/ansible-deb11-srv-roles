@@ -1,0 +1,40 @@
+---
+
+- name: install git
+  apt: 
+    name: git 
+    state: present
+
+- name: layout deployment dirs
+  file:
+    dest : "{{ item.dir }}"
+    state : directory
+    mode : 0750
+    owner : "root"
+    group: "{{ item.group }}"
+  with_items:
+    - dir: "{{ deploy.dir }}"
+      group: "www-data"
+    - dir: "{{ deploy.dir }}/repository"
+      group: "root"
+    - dir: "{{ deploy.dir }}/revisions"
+      group: "www-data"
+    - dir: "{{ deploy.dir }}/files"
+      group: "www-data"
+
+- name: layout files dirs
+  file:
+    dest : "{{ deploy.dir }}/files/{{ item }}"
+    recurse: yes
+    state : directory
+    mode : 0750
+    owner : "{{ deploy.run_user }}"
+    group: "{{ deploy.run_user }}"
+  with_items: "{{ deploy.file_dirs|default([]) }}"
+
+- name: init repository
+  git:
+    dest: "{{ deploy.dir }}/repository"
+    repo: "{{ deploy.repository }}"
+    update: no
+    version: "{{ deploy.branch }}"
