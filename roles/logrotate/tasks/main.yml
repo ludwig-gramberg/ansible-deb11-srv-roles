@@ -1,0 +1,9 @@
+---
+
+- name: create logrotate cfgs
+  template:
+    src: "templates/logrotate.conf.j2"
+    dest: "/etc/logrotate.d/{{ conf.name }}"
+  with_items: "{{ log_rotate|default([]) }}"
+  loop_control:
+    loop_var: conf
