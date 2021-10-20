@@ -2,16 +2,13 @@
 
 # --- vhost {{ vhost.domain }} ---
 
-<VirtualHost {{ vhost.match }}:80>
+<VirtualHost {{ vhost.match }}>
 	ServerName {{ vhost.domain }}
-	ServerAdmin {{ vhost.admin }}
-	DocumentRoot {{ vhost.docroot }}
-
-{% if vhost.other is defined %}
-{% for other in vhost.other %}
-    {{ other }}
+{% for alias in vhost.alias|default([]) %}
+    ServerAlias {{ alias }}
 {% endfor %}
-{% endif %}
+	ServerAdmin {{ vhost.admin|admin_email }}
+	DocumentRoot {{ vhost.docroot }}
 
 	<Directory />
 		Order Deny,Allow
@@ -20,17 +17,8 @@
 		require all denied
 	</Directory>
 
-{% for dir in vhost.directories %}
-	<Directory {{ dir.dir }}>
-{% for access in dir.access %}
-		require {{ access.require }}
-{% endfor %}
-{% if dir.other is defined %}
-{% for other in dir.other %}
-		{{ other }}
-{% endfor %}
-{% endif %}
-	</Directory>
+{% for include_path in vhost.include_paths|default([]) %}
+	Include {{ include_path }}
 {% endfor %}
 
 	ErrorLog /var/log/apache2/error_{{ vhost.domain }}.log

@@ -1,0 +1,69 @@
+---
+
+- name: deploy dotdeb sources.list
+  template: 
+    dest: /etc/apt/sources.list.d/sury.org.list 
+    src: apt.sury.org.list.j2
+
+- name: install keys
+  apt_key: 
+    url: "https://packages.sury.org/php/apt.gpg" 
+    state: present
+  tags:
+    - php-apt-key
+
+- name: apt update
+  apt: 
+    update_cache: yes
+
+- name: install php-packages
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  apt:
+    name: "php{{ php_version }}-{{ item }}"
+    state: present
+  with_items: "{{ php_packages|default([]) }}"
+  notify:
+    - restart apache
+
+- name: install mod-php
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  apt:
+    name: "libapache2-mod-php{{ php_version }}"
+    state: present
+  notify:
+    - restart apache
+
+- name: php-logdir
+  file: 
+    path: /var/log/php 
+    state: directory 
+    owner: www-data 
+    group: www-data
+    mode: 0755
+
+- name: php ini
+  template: 
+    dest: "/etc/php/{{ php_version }}/{{ item }}/php.ini"
+    src: "templates/php.{{ item }}.ini.j2" 
+    backup: yes
+  with_items:
+    - "apache2"
+    - "cli"
+  notify:
+   - restart apache
+  tags:
+    - php-ini
+
+- name: logrotate for php logs
+  template: 
+    dest: /etc/logrotate.d/php 
+    src: templates/php.logrotate.j2
+
+- name: enable php7
+  apache2_module:
+    state: present
+    name: "php{{ php_version }}"
+  notify:
+   - restart apache

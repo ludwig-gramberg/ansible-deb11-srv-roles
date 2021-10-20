@@ -1,4 +1,0 @@
----
-
-php_opcache_memory: "64"
-php_max_upload_size: "8M"

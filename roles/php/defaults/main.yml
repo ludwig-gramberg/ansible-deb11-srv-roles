@@ -1,0 +1,11 @@
+---
+
+php_version: "7.4"
+php_opcache_memory: 64
+php_max_execution_time: 300
+php_timezone: "Etc/UTC"
+php_packages:
+  - "cli"
+  - "curl"
+  - "xml"
+  - "json"
