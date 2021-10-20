@@ -1,7 +1,7 @@
 ---
 
 - name: set timezone
-  file:
+  copy:
     dest: /etc/localtime
-    state: link
     src: "/usr/share/zoneinfo/{{ timezone }}"
+    remote_src: yes
