@@ -1,0 +1,8 @@
+zend_extension=xdebug.so
+
+xdebug.default_enable=1
+xdebug.remote_host={{ php_xdebug_remote_ip }}
+xdebug.remote_enable=1
+xdebug.remote_connect_back=1
+xdebug.idekey={{ php_xdebug_idekey|default("php-xdebug") }}
+xdebug.remote_autostart=1

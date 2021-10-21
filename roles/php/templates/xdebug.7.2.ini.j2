@@ -1,0 +1,9 @@
+zend_extension=xdebug.so
+
+xdebug.client_host={{ php_xdebug_remote_ip }}
+xdebug.idekey={{ php_xdebug_idekey|default("php-xdebug") }}
+xdebug.client_port=9000
+xdebug.mode=debug
+xdebug.start_with_request=yes
+xdebug.discover_client_host=false
+xdebug.log=/var/log/php/xdebug.log

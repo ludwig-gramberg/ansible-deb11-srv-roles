@@ -56,6 +56,14 @@
   tags:
     - php-ini
 
+- name: configure xdebug
+  template:
+    dest: "/etc/php/{{ php_version }}/mods-available/xdebug.ini"
+    src: "templates/xdebug.{{ php_version }}.ini.j2"
+  when: ("xdebug" in php_packages)
+  notify:
+   - restart apache
+
 - name: logrotate for php logs
   template: 
     dest: /etc/logrotate.d/php 
