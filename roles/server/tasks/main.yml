@@ -37,3 +37,13 @@
     dest: /etc/network/interfaces.d/60-vlan.cfg
     src: templates/vlan.cfg.j2
   when: if_vlan is defined
+  
+- name: hostname
+  ansible.builtin.hostname:
+    name: "{{ server_name }}"
+
+- name: hostname /etc/hosts
+  ansible.builtin.lineinfile:
+    dest: /etc/hosts
+    state: "present"
+    line: "127.0.0.1  {{ server_name }}"
