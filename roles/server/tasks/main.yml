@@ -38,6 +38,12 @@
     src: templates/vlan.cfg.j2
   when: if_vlan is defined
   
+- name: /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.resolve }}\t{{ item.host }}"
+  with_items: "{{ etc_hosts|default([]) }}"
+  
 - name: hostname
   ansible.builtin.hostname:
     name: "{{ server_name }}"

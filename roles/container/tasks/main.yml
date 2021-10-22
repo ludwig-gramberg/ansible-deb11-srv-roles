@@ -25,11 +25,11 @@
     - mailutils
     - nagios-plugins
 
-- name: hosts
+- name: /etc/hosts
   lineinfile:
     path: /etc/hosts
     line: "{{ item.resolve }}\t{{ item.host }}"
-  with_items: "{{ hosts|default([]) }}"
+  with_items: "{{ etc_hosts|default([]) }}"
   
 - name: silence cron
   lineinfile:
