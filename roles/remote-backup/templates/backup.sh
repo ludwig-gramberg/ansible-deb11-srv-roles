@@ -6,7 +6,7 @@ if [ $USER != "backup" ]; then
 fi
 
 cd /var/backups/server/r3b
-targets=$(ls config/targets)
+targets=$(ls targets)
 
 for target in $targets; do
   bash bin/target.sh $target

@@ -28,13 +28,18 @@
     - restart munin
   tags: munin
 
-- include: packages.yml
+- import_tasks: 
+    file: packages.yml
   tags:
     - reverseproxy-config
-- include: apache.yml
+
+- import_tasks: 
+    file: apache.yml
   tags:
     - reverseproxy-config
-- include: certs.yml
+
+- import_tasks: 
+    file: certs.yml
   tags:
     - reverseproxy-certs
 
