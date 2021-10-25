@@ -37,3 +37,13 @@
     line: "MAILTO=\"\""
     regexp: "^MAILTO="
     insertafter: "^PATH="
+    
+- name: hostname
+  ansible.builtin.hostname:
+    name: "{{ server_name }}"
+
+- name: hostname /etc/hosts
+  ansible.builtin.lineinfile:
+    dest: /etc/hosts
+    state: "present"
+    line: "127.0.0.1  {{ server_name }}"

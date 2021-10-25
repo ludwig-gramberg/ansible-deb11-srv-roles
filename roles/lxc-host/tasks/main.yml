@@ -15,7 +15,10 @@
 # setup containers
 
 - name: setup containers
-  include_tasks: tasks/container.yml
+  include_tasks: 
+    file: tasks/container.yml
+    apply:
+      tags: lxc-container
   with_items: "{{ lxc_container|default([]) }}"
   loop_control:
     loop_var: "container_item"

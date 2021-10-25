@@ -87,23 +87,23 @@
     state: restarted
 
 - name: prepare container user via lxc-attach
-  command: lxc-attach -n {{ container_item.name }} -- useradd -p {{ container_config_user.password_encrypted }} -s /bin/bash -m {{ container_config_user.name }}
+  command: lxc-attach -n {{ container_item.name }} -- useradd -p {{ lxc_defaults.config_user.password_encrypted }} -s /bin/bash -m {{ lxc_defaults.config_user.name }}
   args:
-    creates: /var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ container_config_user.name }}
+    creates: /var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ lxc_defaults.config_user.name }}
 
 - name: prepare container user via lxc-attach
-  command: lxc-attach -n {{ container_item.name }} -- usermod -a -G sudo {{ container_config_user.name }}
+  command: lxc-attach -n {{ container_item.name }} -- usermod -a -G sudo {{ lxc_defaults.config_user.name }}
 
 - name: add admin users public keys to container
   authorized_key:
-    user: "{{ container_config_user.name }}"
+    user: "{{ lxc_defaults.config_user.name }}"
     key: "{{ item }}"
-    path: "/var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ container_config_user.name }}/.ssh/authorized_keys"
-  with_items: "{{ container_config_user.public_keys | default([]) }}"
+    path: "/var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ lxc_defaults.config_user.name }}/.ssh/authorized_keys"
+  with_items: "{{ lxc_defaults.config_user.public_keys | default([]) }}"
 
 - name: ownership of .ssh/authorized_keys
   file:
-    path: "/var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ container_config_user.name }}/.ssh"
+    path: "/var/lib/lxc/{{ container_item.name }}/rootfs/home/{{ lxc_defaults.config_user.name }}/.ssh"
     owner: "{{ uid_begin }}"
     group: "{{ uid_begin }}"
     mode: "0755"
