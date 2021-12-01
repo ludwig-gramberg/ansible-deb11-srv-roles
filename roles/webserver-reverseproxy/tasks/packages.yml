@@ -64,7 +64,7 @@
     - regexp: ^[\s]*#?[\s]*SSLHonorCipherOrder
       line: SSLHonorCipherOrder On
     - regexp: ^[\s]*#?[\s]*SSLCipherSuite
-      line: SSLCipherSuite TLSv1.3:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384
+      line: SSLCipherSuite TLSv1.3:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256
     - regexp: ^[\s]*#?[\s]*SSLCompression
       line: SSLCompression off
     - regexp: ^[\s]*#?[\s]*SSLProtocol
