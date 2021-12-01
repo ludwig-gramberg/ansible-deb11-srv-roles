@@ -1,5 +1,37 @@
 ---
 
+- name: prepare root .ssh
+  file:
+    dest: "/root/.ssh"
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: prepare root .ssh/config
+  template:
+    src: templates/ssh_config.j2
+    dest: "/root/.ssh/config"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: prepare root .ssh/keys 1/2
+  copy:
+    dest: "/root/.ssh/github_deployment.pub"
+    content: "{{ github_deployment.public_key }}"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: prepare root .ssh/keys 2/2
+  copy:
+    dest: "/root/.ssh/github_deployment"
+    content: "{{ github_deployment.private_key }}"
+    owner: root
+    group: root
+    mode: 0600
+
 - name: install git
   apt: 
     name: git 
@@ -28,8 +60,8 @@
     recurse: yes
     state : directory
     mode : 0750
-    owner : "{{ deploy.run_user }}"
-    group: "{{ deploy.run_user }}"
+    owner : "www-data"
+    group: "www-data"
   with_items: "{{ deploy.file_dirs|default([]) }}"
 
 - name: init repository
@@ -38,3 +70,23 @@
     repo: "{{ deploy.repository }}"
     update: no
     version: "{{ deploy.branch }}"
+
+- name: create initial empty revision
+  file:
+    dest: "{{ deploy.dir }}/revisions/init"
+    state: directory
+    mode : 0750
+    owner : "root"
+    group: "www-data"
+    
+- name: check if current symlink exists
+  stat:
+    path: "{{ deploy.dir }}/current" 
+  register: current_symlink
+  
+- name: create initial current symlink
+  file:
+    state: link
+    dest: "{{ deploy.dir }}/current"
+    src: "{{ deploy.dir }}/revisions/init"
+  when: current_symlink.stat.exists == False

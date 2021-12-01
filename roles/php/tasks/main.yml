@@ -68,17 +68,17 @@
   template: 
     dest: /etc/logrotate.d/php 
     src: templates/php.logrotate.j2
+    
+- name: deploy harden-php vhost conf
+  template:
+    dest: /etc/apache2/vhosts-include/harden-php.conf
+    src: templates/harden-php.conf.j2
+  notify:
+    - restart apache
 
 - name: enable php
   apache2_module:
     state: present
     name: "php{{ php_version }}"
-  notify:
-   - restart apache
-
-- name: deploy harden-php vhost conf
-  template: 
-    dest: /etc/apache2/vhosts-include/harden-php.conf 
-    src: templates/harden-php.conf.j2
   notify:
    - restart apache
