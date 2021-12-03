@@ -45,6 +45,7 @@
     owner: root
     group: root
     mode: 0644
+  when: "'container' in role_names"
 
 - name: rpaf configs
   template: 
@@ -53,6 +54,7 @@
   with_items:
     - "load"
     - "conf"
+  when: "'container' in role_names"
   notify:
     - restart apache
 
@@ -64,6 +66,7 @@
   with_items:
     - "load"
     - "conf"
+  when: "'container' in role_names"
   notify:
     - restart apache
 
