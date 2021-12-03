@@ -25,6 +25,12 @@
     - mailutils
     - nagios-plugins
 
+- name: install additional packages
+  apt: 
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ additional_packages|default([]) }}"
+
 - name: /etc/hosts
   lineinfile:
     path: /etc/hosts
