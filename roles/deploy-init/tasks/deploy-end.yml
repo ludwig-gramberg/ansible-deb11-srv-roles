@@ -1,0 +1,50 @@
+---
+
+- name: current symlink
+  file:
+    state: link
+    dest: "{{ deploy.dir }}/current"
+    src: "{{ revision_folder }}"
+  notify:
+    - reload apache
+
+- name: write deployed revision in file
+  lineinfile:
+    dest: "{{ deploy.dir }}/revisions/index.txt"
+    line: "{{ revision_name }}"
+    owner: root
+    group: root
+    state: present
+    create: true
+    insertafter: EOF
+
+- name: read revisions index
+  shell: "cat {{ deploy.dir }}/revisions/index.txt"
+  register: revisions_index_file
+
+- name: fact revisions index
+  set_fact:
+    revisions_index: "{{ revisions_index_file.stdout_lines|select()|list }}"
+
+- name: fact revisions length
+  set_fact:
+    revisions_discard: "{{ revisions_index|length - deploy.revisions|default(3) }}"
+
+- name: remove revision folder
+  file:
+    path: "{{ deploy.dir }}/revisions/{{ item }}"
+    state: absent
+  loop: "{{ revisions_index }}"
+  loop_control:
+    index_var: i
+  when: i < revisions_discard|int and item != revision_name
+
+- name: remove revision from index
+  lineinfile:
+    dest: "{{ deploy.dir }}/revisions/index.txt"
+    state: absent
+    regexp: '^{{ item }}$'
+  loop: "{{ revisions_index }}"
+  loop_control:
+    index_var: i
+  when: i < revisions_discard|int and item != revision_name

@@ -48,6 +48,7 @@
 
 - name: prepare variables
   set_fact:
+    revision_name: "{{ result.stdout }}_{{ revision_hash }}"
     revision_tar: "{{ deploy.dir }}/{{ result.stdout }}_{{ revision_hash }}.tar"
     revision_folder: "{{ deploy.dir }}/revisions/{{ result.stdout }}_{{ revision_hash }}"
 
