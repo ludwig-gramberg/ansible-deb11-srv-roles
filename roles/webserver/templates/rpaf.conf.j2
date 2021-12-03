@@ -1,6 +1,6 @@
 <IfModule rpaf_module>
     RPAF_Enable             On
-    RPAF_ProxyIPs           {{ container_default.gateway }} ::1
+    RPAF_ProxyIPs           {{ lxc_defaults.gateway }} ::1
     RPAF_SetHostName        On
     RPAF_SetHTTPS           On
     RPAF_SetPort            On
