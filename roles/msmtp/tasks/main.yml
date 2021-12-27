@@ -40,7 +40,7 @@
 - name: mail.rc
   lineinfile:
     path: /etc/mail.rc
-    line: "set sendmail=\"/usr/bin/msmtp -t\""
+    line: "set sendmail=/usr/bin/msmtp -t"
     regexp: "^set sendmail="
     create: "yes"
     owner: "root"

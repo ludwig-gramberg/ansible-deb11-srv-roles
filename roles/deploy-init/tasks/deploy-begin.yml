@@ -86,11 +86,37 @@
     group: "www-data"
   when: create_folder.changed
 
+- name: prepare subpath variable 1/3
+  set_fact:
+    deploy_subpath: "{{ deploy.subpath | default('') }}"
+
+- name: prepare subpath variable 2/3
+  set_fact:
+    deploy_subpath: "{{ deploy_subpath | regex_replace('^/', '') | regex_replace('/$', '') }}"
+  when: deploy_subpath != ''
+
+- name: prepare subpath variable 3/3
+  set_fact:
+    deploy_subpath: "{{ '/' + deploy_subpath }}"
+  when: deploy_subpath != ''
+
+- name: prepare deployed_path variable
+  set_fact:
+    deployed_path: "{{ revision_folder }}{{ deploy_subpath }}"
+
 - name: .revision file
   copy:
     content: "{{ revision_hash }}"
-    dest: "{{ revision_folder }}/{{ deploy.revision_file }}"
+    dest: "{{ deployed_path }}/{{ deploy.revision_file }}"
     mode: 0440
     owner: root
     group: "www-data"
   when: deploy.revision_file
+  
+- name: read revisions index
+  command: "cat {{ deploy.dir }}/revisions/index.txt"
+  register: revisions_index_file
+
+- name: revisions index in var
+  set_fact:
+    revisions_index: "{{ revisions_index_file.stdout }}"

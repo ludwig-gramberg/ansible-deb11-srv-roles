@@ -1,5 +1,14 @@
 ### todo
 
+#### lxc-host
+
+/etc/resolv.conf was empty after container restart
+thus install did not continue on its own
+
+#### wp deploy
+
+#### apache
+
 harden /etc/apache2/conf-enable/security.conf
 ServerTokens Minimal
 ServerSignature Off

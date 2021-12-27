@@ -54,6 +54,14 @@
     - dir: "{{ deploy.dir }}/files"
       group: "www-data"
 
+- name: prepare deployment index file
+  file:
+    state: touch
+    path: "{{ deploy.dir }}/revisions/index.txt"
+    owner: "root"
+    group: "root"
+    mode: 0750
+
 - name: layout files dirs
   file:
     dest : "{{ deploy.dir }}/files/{{ item }}"
