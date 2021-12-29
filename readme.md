@@ -1,10 +1,5 @@
 ### todo
 
-#### lxc-host
-
-/etc/resolv.conf was empty after container restart
-thus install did not continue on its own
-
 #### wp deploy
 
 #### apache

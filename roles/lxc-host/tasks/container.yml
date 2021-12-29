@@ -65,7 +65,7 @@
     name: "{{ container_item.name }}"
     state: restarted
 
-- name: prepare tmp resolvconf
+- name: resolvconf place
   template:
     dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolv.conf"
     src: templates/resolv.conf.j2
@@ -79,6 +79,11 @@
 - name: prepare ipv4 only dns
   template:
     dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolvconf/resolv.conf.d/head"
+    src: templates/resolv.conf.j2
+
+- name: resolvconf place again
+  template:
+    dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolv.conf"
     src: templates/resolv.conf.j2
 
 - name: restart container
