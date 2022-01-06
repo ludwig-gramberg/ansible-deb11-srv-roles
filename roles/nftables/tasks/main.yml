@@ -7,13 +7,27 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
 
-- name: default rules template
+- name: default rules full template
+  template: 
+    dest: /etc/nftables.conf
+    src: "../../../../templates/{{ nftables.template }}" 
+    owner: root 
+    group: root
+    mode: 0644
+  notify:
+    - reload rules
+  tags:
+    - nftables-config
+  when: nftables.template is defined
+
+- name: default rules simple template
   template: 
     dest: /etc/nftables.conf
     src: netfilter.conf.j2 
     owner: root 
     group: root
     mode: 0644
+  when: nftables.template is not defined
   notify: 
     - reload rules
   tags:
