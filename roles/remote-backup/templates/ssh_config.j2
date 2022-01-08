@@ -1,0 +1,15 @@
+UserKnownHostsFile = {{ remote_backup.home }}/.ssh/known_hosts
+ServerAliveInterval 15
+ConnectTimeout 30
+UseRoaming no
+IdentitiesOnly yes
+
+{% for server in remote_backup.servers %}
+Host {{ server.name }}
+  Port {{ server.port|default(22) }}
+  HostName {{ server.host }}
+  User {{ server.user }}
+  IdentityFile /var/backups/.ssh/{{ server.keyfile }}
+  StrictHostKeyChecking no
+
+{% endfor %}

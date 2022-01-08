@@ -1,0 +1,7 @@
+active={{ target.active|default(1) }}
+server={{ target.server }}
+path={{ target.path }}
+{% if target.exclude is defined %}exclude={{ target.exclude }}{% endif %}
+{% if target.keep_hours is defined %}keep_hours={{ target.keep_hours }}{% endif %}
+{% if target.keep_days is defined %}keep_days={{ target.keep_days }}{% endif %}
+{% if target.keep_months is defined %}keep_months={{ target.keep_months }}{% endif %}

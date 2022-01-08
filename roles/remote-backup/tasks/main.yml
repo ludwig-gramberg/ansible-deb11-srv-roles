@@ -1,3 +1,82 @@
 ---
 
-- name: xaz
+- name: directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0700
+  with_items:
+    - "{{ remote_backup.data }}"
+    - "{{ remote_backup.data }}/bin"
+    - "{{ remote_backup.data }}/exclude"
+    - "{{ remote_backup.data }}/mirrors"
+    - "{{ remote_backup.data }}/repos"
+    - "{{ remote_backup.data }}/targets"
+
+- name: scripts
+  copy:
+    src: "files/{{ item }}"
+    dest: "{{ remote_backup.data }}/bin/{{ item }}"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0600
+  with_items:
+    - "backup.sh"
+    - "target.sh"
+
+- name: defaults
+  copy:
+    src: "files/defaults"
+    dest: "{{ remote_backup.data }}/defaults"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0600
+
+- name: restic_pass file
+  copy:
+    dest: "{{ remote_backup.data }}/restic_pass"
+    content: "{{ remote_backup.restic_pass }}"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0600
+
+- name: exclude profiles
+  copy:
+    dest: "{{ remote_backup.data }}/exclude/{{ profile.name }}"
+    content: "{{ profile.paths | join('\n') }}"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0600
+  loop: "{{ remote_backup.exclude }}"
+  loop_control:
+    loop_var: "profile"
+  when: remote_backup.exclude is defined
+    
+- name: .ssh dir
+  file:
+    path: "{{ remote_backup.home }}/.ssh"
+    state: directory
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0700
+
+- name: ssh config
+  template:
+    dest: "{{ remote_backup.home }}/.ssh/config"
+    src: "templates/ssh_config.j2"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0700
+
+- name: targets
+  template:
+    dest: "{{ remote_backup.data }}/targets/{{ target.name }}"
+    src: "templates/target.j2"
+    owner: "{{ remote_backup.user }}"
+    group: "{{ remote_backup.user }}"
+    mode: 0700
+  loop: "{{ remote_backup.targets }}"
+  loop_control:
+    loop_var: "target"
