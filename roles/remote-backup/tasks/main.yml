@@ -1,5 +1,12 @@
 ---
 
+- name: install packages
+  apt:
+    state: present
+    name:
+      - "restic"
+      - "rsync"
+
 - name: directories
   file:
     state: directory
