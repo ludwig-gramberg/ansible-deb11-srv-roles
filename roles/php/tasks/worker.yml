@@ -1,0 +1,11 @@
+---
+
+- name: systemd service file
+  template:
+    dest: "/etc/systemd/system/php-worker-{{ worker.name }}.service"
+    src: templates/worker.service.j2
+
+- name: env-file
+  template:
+    dest: "/etc/php-worker-env-{{ worker.name }}"
+    src: templates/worker.env.j2

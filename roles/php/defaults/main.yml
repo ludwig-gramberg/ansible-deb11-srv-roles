@@ -9,3 +9,4 @@ php_packages:
   - "curl"
   - "xml"
   - "json"
+php_worker: []

@@ -1,0 +1,21 @@
+[Unit]
+Description=php-worker-{{ worker.name }}
+
+[Service]
+User={{ worker.user|default("www-data") }}
+Restart=always
+RestartSec=5
+Type=simple
+EnvironmentFile=/etc/php-worker-env-{{ worker.name }}
+ExecStart=/usr/bin/php $FILE{% if worker.params is defined %}{% for param in worker.params %} $OPT{{ loop.index }}{% endfor %}
+{% endif %}
+
+KillSignal={{ worker.sigkill|default("SIGKILL") }}
+RemainAfterExit=no
+ExecStartPre=+/usr/bin/touch {{ worker.log|default("/var/log/php/worker-{{ worker.name }}.log") }}
+ExecStartPre=+/usr/bin/chown {{ worker.user|default("www-data") }}:{{ worker.user|default("www-data") }} {{ worker.log|default("/var/log/php/worker-{{ worker.name }}.log") }}
+StandardOutput=append:{{ worker.log|default("/var/log/php/worker-{{ worker.name }}.log") }}
+StandardError=append:{{ worker.log|default("/var/log/php/worker-{{ worker.name }}.log") }}
+
+[Install]
+WantedBy=multi-user.target

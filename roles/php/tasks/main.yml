@@ -82,3 +82,19 @@
     name: "php{{ php_version }}"
   notify:
    - restart apache
+
+# worker
+
+- name: php-worker
+  include_tasks:
+    file: tasks/worker.yml
+    apply:
+      tags: php-worker
+  with_items: "{{ php_worker }}"
+  loop_control:
+    loop_var: "worker"
+  tags: php-worker
+
+- name: daemon-reload systemctl
+  raw: systemctl daemon-reload
+  tags: php-worker
