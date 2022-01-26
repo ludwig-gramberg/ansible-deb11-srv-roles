@@ -59,6 +59,9 @@
   template:
     dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/network/interfaces"
     src: "network.interfaces.j2"
+    owner: "{{ uid_begin }}"
+    group: "{{ uid_begin }}"
+    mode: "0755"
 
 - name: restart container
   lxc_container:
@@ -69,7 +72,10 @@
   template:
     dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolv.conf"
     src: templates/resolv.conf.j2
-
+    owner: "{{ uid_begin }}"
+    group: "{{ uid_begin }}"
+    mode: "0755"
+    
 - name: prepare container packages via lxc-attach
   command: lxc-attach -n {{ container_item.name }} -- {{ item }}
   with_items:
