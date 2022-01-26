@@ -74,17 +74,7 @@
   command: lxc-attach -n {{ container_item.name }} -- {{ item }}
   with_items:
     - "apt-get update"
-    - "apt-get install -y libterm-ui-perl openssh-server sudo resolvconf python3 python3-apt"
-
-- name: prepare ipv4 only dns
-  template:
-    dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolvconf/resolv.conf.d/head"
-    src: templates/resolv.conf.j2
-
-- name: resolvconf place again
-  template:
-    dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/resolv.conf"
-    src: templates/resolv.conf.j2
+    - "apt-get install -y libterm-ui-perl openssh-server sudo python3 python3-apt"
 
 - name: restart container
   lxc_container:
