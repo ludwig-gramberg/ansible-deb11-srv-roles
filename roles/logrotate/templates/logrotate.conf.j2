@@ -1,10 +1,10 @@
-{{conf.path}} {
+{{ conf.path }} {
 	daily
 	missingok
-	rotate {{conf.rotate}}
+	rotate {{ conf.rotate }}
 	compress
 	delaycompress
 	notifempty
-	create 644 {{conf.user}} {{conf.user}}
-	su {{conf.user}} {{conf.user}}
+	create 644 {{ conf.user}} {{ conf.user }}
+	su {{ conf.user }} {{ conf.user }}
 }
