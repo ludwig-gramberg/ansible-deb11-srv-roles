@@ -1,0 +1,9 @@
+---
+
+- name: download wp-cli
+  get_url:
+    url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    dest: /usr/share/wp-cli.phar
+    mode: 0644
+    owner: root
+    group: root
