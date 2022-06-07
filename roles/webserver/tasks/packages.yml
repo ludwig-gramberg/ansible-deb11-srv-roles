@@ -15,6 +15,7 @@
   template: 
     src: "mpm_{{ mpm.module }}.conf.j2" 
     dest: "/etc/apache2/mods-available/mpm_{{ mpm.module }}.conf"
+  tags: webserver-mpm-config
 
 - name: unlink all other mpm modules
   file: 
@@ -26,6 +27,7 @@
   when: (mpm.module != item[0])
   notify:
     - restart apache
+  tags: webserver-mpm-config
 
 - name: link preferred mpm module
   file: 
@@ -37,6 +39,7 @@
     - "mpm_{{ mpm.module }}.load"
   notify:
     - restart apache
+  tags: webserver-mpm-config
 
 - name: install precompiled mod_rpaf 0.8.4 from https://github.com/gnif/mod_rpaf
   copy:
