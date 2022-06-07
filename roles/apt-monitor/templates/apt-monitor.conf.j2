@@ -1,0 +1,10 @@
+[email]
+recipient={{ apt_monitor.recipient }}
+subject=apt-monitor on {{ apt_monitor.hostname }}
+sender=apt-monitor@{{ apt_monitor.hostname }}
+[smtp]
+server={{ apt_monitor.smtp_server }}
+user={{ apt_monitor.smtp_user }}
+pass={{ apt_monitor.smtp_pass }}
+port={{ apt_monitor.smtp_port }}
+security={{ apt_monitor.smtp_security }}
