@@ -28,6 +28,6 @@
   tags: munin
   when: munin_installed.stat.exists == True
 
-- include_tasks: tasks/packages.yml
-- include_tasks: tasks/apache.yml
-- include_tasks: tasks/certs.yml
+- import_tasks: tasks/packages.yml
+- import_tasks: tasks/apache.yml
+- import_tasks: tasks/certs.yml
