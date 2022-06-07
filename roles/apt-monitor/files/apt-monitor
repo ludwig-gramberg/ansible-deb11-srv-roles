@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re
 import string
@@ -7,9 +7,10 @@ import sys
 import datetime
 import socket
 import smtplib
-import ConfigParser
+import configparser
 import os.path
 from subprocess import call
+from email.message import EmailMessage
 
 # extract updates from apt output
 def collect_upgrades(host, changes, upgrades, is_lxc):
@@ -29,14 +30,14 @@ upgrades = {}
 
 # update and check for pending upgrades
 call(['apt-get', 'update', '-qq'])
-changes = subprocess.check_output(['apt-get', '--just-print', 'dist-upgrade'])
+changes = subprocess.check_output(['apt-get', '--just-print', 'dist-upgrade']).decode("utf-8")
 collect_upgrades('master', changes, upgrades, False)
 
-if os.path.exists(/usr/bin/lxc-ls)
-  containers = subprocess.check_output(['lxc-ls', '-1']).strip().split('\n')
+if os.path.exists('/usr/bin/lxc-ls'):
+  containers = subprocess.check_output(['lxc-ls', '-1']).decode("utf-8").strip().split('\n')
   for container in containers:
     call(['lxc-attach', '-n', container, '--', 'apt-get', 'update', '-qq'])
-    changes = subprocess.check_output(['lxc-attach', '-n', container, '--', 'apt-get', '--just-print', 'dist-upgrade'])
+    changes = subprocess.check_output(['lxc-attach', '-n', container, '--', 'apt-get', '--just-print', 'dist-upgrade']).decode("utf-8")
     collect_upgrades(container, changes, upgrades, True)
 
 # if upgrades is empty we can exit
@@ -53,7 +54,7 @@ text += '\n'
 text += '----- packages -----\n'
 
 apt_changes = ''
-for key, upgrade in upgrades.iteritems():
+for key, upgrade in upgrades.items():
   deb_file = '/var/cache/apt/archives/'+upgrade['name']+'_'+upgrade['version_new']+'_'+upgrade['suffix']+'.deb'
   deb_file = deb_file.replace(':', '%3a')
   if upgrade['is_lxc']:
@@ -61,11 +62,11 @@ for key, upgrade in upgrades.iteritems():
     host_deb_file = '/var/lib/lxc/'+container+'/rootfs'+deb_file
     if not os.path.isfile(host_deb_file):
       subprocess.check_output(['lxc-attach', '-n', container, '--', 'apt-get', '-y', '-d', 'install', upgrade['name']])
-    apt_changes += subprocess.check_output(['lxc-attach', '-n', container, '--', 'apt-listchanges', '-f', 'text', deb_file])
+    apt_changes += subprocess.check_output(['lxc-attach', '-n', container, '--', 'apt-listchanges', '-f', 'text', deb_file]).decode("utf-8")
   else:
     if not os.path.isfile(deb_file):
       subprocess.check_output(['apt-get', '-y', '-d', 'install', upgrade['name']])
-    apt_changes += subprocess.check_output(['apt-listchanges', '-f', 'text', deb_file])
+    apt_changes += subprocess.check_output(['apt-listchanges', '-f', 'text', deb_file]).decode("utf-8")
   text += '\n'
   text += upgrade['name']+'\n'
   text += '    version old: '+upgrade['version_old']+'\n'
@@ -80,7 +81,7 @@ text += apt_changes
 
 # read apt-monitor config
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read(['/etc/apt-monitor.conf'])
 
 sender = config.get('email', 'sender')
@@ -95,14 +96,15 @@ smtp_security = config.get('smtp', 'security')
 
 # recipient
 
-header = 'From: '+sender+'\r\n'
-header += 'To: '+recipient+'\r\n'
-header += 'Subject: '+subject+'\r\n'
-header += '\r\n'
+msg = EmailMessage()
+msg['Subject'] = subject
+msg['From'] = sender
+msg['To'] = recipient
+msg.set_content(text)
 
 server = smtplib.SMTP(smtp_server, smtp_port, None, 10)
 if smtp_security == 'tls':
   server.starttls()
 server.login(smtp_user, smtp_pass)
-server.sendmail(sender, recipient, header+text)
+server.send_message(msg)
 server.quit()
