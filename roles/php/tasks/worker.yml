@@ -9,3 +9,6 @@
   template:
     dest: "/etc/php-worker-env-{{ worker.name }}"
     src: templates/worker.env.j2
+    
+- name: systemd reload
+  command: systemctl daemon-reload

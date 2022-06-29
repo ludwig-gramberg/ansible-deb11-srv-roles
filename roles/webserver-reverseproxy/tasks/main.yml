@@ -15,6 +15,7 @@
   tags:
     - reverseproxy-config
     - reverseproxy-certs
+    - reverseproxy-vhost
 
 - name: activate plugins
   file: 
@@ -37,6 +38,8 @@
     file: apache.yml
   tags:
     - reverseproxy-config
+    - reverseproxy-certs
+    - reverseproxy-vhost
 
 - import_tasks: 
     file: certs.yml
