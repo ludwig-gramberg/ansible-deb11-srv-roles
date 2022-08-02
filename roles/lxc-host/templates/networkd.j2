@@ -1,0 +1,8 @@
+[Match]
+Name=eth0
+[Network]
+Address={{ container_item.ip }}/24
+Gateway={{ container_item.gateway | default(lxc_defaults.gateway) }}
+{% for ip in lxc_defaults.nameserver %}
+DNS={{ ip }}
+{% endfor %}

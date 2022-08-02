@@ -4,5 +4,5 @@ iface lo inet loopback
 auto eth0
 iface eth0 inet static
    address {{ container_item.ip }}
-   netmask {{ container_item.netmask | default(lxc_defaults.netmask) }}
+   netmask 255.255.255.0
    gateway {{ container_item.gateway | default(lxc_defaults.gateway) }}

@@ -45,7 +45,7 @@
     src: "container.spawn.conf.j2"
 
 - name: create barebone container
-  command: lxc-create -f /etc/lxc/{{ container_item.name }}.conf --name {{ container_item.name }} --template download -- --release bullseye --arch amd64 --dist debian --no-validate
+  command: lxc-create -f /etc/lxc/{{ container_item.name }}.conf --name {{ container_item.name }} --template download -- --release bullseye --arch amd64 --dist debian
   args:
     creates: "/var/lib/lxc/{{ container_item.name }}/config"
   register: container_created
@@ -55,6 +55,13 @@
     dest: "/var/lib/lxc/{{ container_item.name }}/config"
     src: "container.conf.j2"
 
+- name: check network container implementation
+  stat:
+    path: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/systemd/network/eth0.network"
+  register: use_networkd
+
+# begin: /etc/network/interfaces
+
 - name: network interfaces
   template:
     dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/network/interfaces"
@@ -62,11 +69,13 @@
     owner: "{{ uid_begin }}"
     group: "{{ uid_begin }}"
     mode: "0755"
+  when: use_networkd.stat.exists == False
 
 - name: restart container
   lxc_container:
     name: "{{ container_item.name }}"
     state: restarted
+  when: use_networkd.stat.exists == False
 
 - name: resolvconf place
   template:
@@ -75,6 +84,26 @@
     owner: "{{ uid_begin }}"
     group: "{{ uid_begin }}"
     mode: "0755"
+  when: use_networkd.stat.exists == False
+    
+# begin: /etc/systemd/network/eth0.network
+  
+- name: networkd eth0.network
+  template:
+    dest: "/var/lib/lxc/{{ container_item.name }}/rootfs/etc/systemd/network/eth0.network"
+    src: "networkd.j2"
+    owner: "{{ uid_begin }}"
+    group: "{{ uid_begin }}"
+    mode: "0755"
+  when: use_networkd.stat.exists
+    
+- name: restart container
+  lxc_container:
+    name: "{{ container_item.name }}"
+    state: restarted
+  when: use_networkd.stat.exists
+  
+# endof network setup
     
 - name: prepare container packages via lxc-attach
   command: lxc-attach -n {{ container_item.name }} -- {{ item }}
